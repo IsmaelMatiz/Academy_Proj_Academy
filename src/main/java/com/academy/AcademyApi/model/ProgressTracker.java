@@ -8,13 +8,12 @@ import lombok.*;
 @Table(name = "STUDENT_PROGRESS_TRACKER", schema = "ACADEMY")
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @ToString
 public class ProgressTracker {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "TRACKER_ID")
     private long id;
 
@@ -34,6 +33,14 @@ public class ProgressTracker {
 
     @Column(name = "CURRENT_CLASS")
     private int currentClass;
+
+    public ProgressTracker(StudentsTeachers student, Status status, int currentBimester, int currentWeek, int currentClass) {
+        this.student = student;
+        this.status = status;
+        this.currentBimester = currentBimester;
+        this.currentWeek = currentWeek;
+        this.currentClass = currentClass;
+    }
 }
 
 

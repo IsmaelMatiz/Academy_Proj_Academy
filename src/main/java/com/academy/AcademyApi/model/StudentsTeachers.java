@@ -14,7 +14,7 @@ import lombok.*;
 public class StudentsTeachers {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     @Column(name = "ID")
     private long id;
 
