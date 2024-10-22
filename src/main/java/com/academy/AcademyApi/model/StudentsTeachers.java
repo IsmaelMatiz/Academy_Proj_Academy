@@ -4,6 +4,8 @@ import com.academy.AcademyApi.model.contantsEntities.UserType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "STUDENTS_TEACHERS", schema = "ACADEMY")
 @Getter
@@ -32,6 +34,9 @@ public class StudentsTeachers {
     @Column(name = "USER_TYPE")
     private UserType userType;
 
-    @Column(name = "CHOSEN_CAREER")
-    private int choosenCareer;
+    // Relación One-to-Many con Career
+    // Relación Many-to-One con Career
+    @ManyToOne
+    @JoinColumn(name = "CAREER_ID")  // Llave foránea en StudentsTeachers que referencia a Career
+    private Career choosenCareer;
 }

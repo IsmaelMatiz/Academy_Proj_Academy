@@ -1,7 +1,6 @@
 package com.academy.AcademyApi.controller;
 
 import com.academy.AcademyApi.model.ProgressTracker;
-import com.academy.AcademyApi.model.StudentProgressInfo;
 import com.academy.AcademyApi.model.StudentsTeachers;
 import com.academy.AcademyApi.model.contantsEntities.Status;
 import com.academy.AcademyApi.repository.ProgressTrackerRepository;
@@ -12,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -26,7 +23,6 @@ public class StudentCareerInfoController {
     @GetMapping("/Student/{email}")
     public ResponseEntity<?> getStudentInfo(@PathVariable("email") String email) {
         // <editor-fold defaultstate="collapsed" desc="Get Student profile Info">
-        System.out.println("email es: "+email);
         if (email == null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("No se puede obtener el correo: " + email);
@@ -50,12 +46,7 @@ public class StudentCareerInfoController {
         }
         // </editor-fold>
 
-        StudentProgressInfo studentInfo = new StudentProgressInfo(
-                studentsProfile,
-                studentProgress
-        );
-
-        return new ResponseEntity<>(studentInfo, HttpStatus.OK);
+        return new ResponseEntity<>(studentProgress, HttpStatus.OK);
     }
 
     @PostMapping("/Student")
@@ -65,8 +56,8 @@ public class StudentCareerInfoController {
             progressTrackerRepository.save(new ProgressTracker(
                             studentInfo,
                             Status.ACTIVE,
-                            0,
-                            0,
+                            1,
+                            1,
                             0
                     )
             );
@@ -91,6 +82,59 @@ public class StudentCareerInfoController {
             System.out.println("Error al guardar el registro: " + e.getStackTrace());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al registrar entidad: \n" +
                     ""+e.getMessage());
+        }
+    }
+
+    @PutMapping("/Student/{id}")
+    public ResponseEntity<?> updateStudentInfo(@PathVariable("id") Long id, @RequestBody StudentsTeachers updatedStudentInfo) {
+        try {
+            // Verifica si el estudiante existe
+            StudentsTeachers existingStudent = studentsTeachersRepository.findById(id).orElse(null);
+
+            if (existingStudent == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No se encontró un estudiante con el ID: " + id);
+            }
+
+            // Actualiza la información del estudiante
+            existingStudent.setFullName(updatedStudentInfo.getFullName());
+            existingStudent.setEmail(updatedStudentInfo.getEmail());
+            existingStudent.setProfilePic(updatedStudentInfo.getProfilePic());
+            existingStudent.setUserType(updatedStudentInfo.getUserType());
+            existingStudent.setChoosenCareer(updatedStudentInfo.getChoosenCareer());
+
+            studentsTeachersRepository.save(existingStudent);
+
+            return ResponseEntity.status(HttpStatus.OK).body("Estudiante actualizado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el estudiante: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/Student/{id}")
+    public ResponseEntity<?> deleteStudentInfo(@PathVariable("id") Long id) {
+        try {
+            // Verifica si el estudiante existe
+            StudentsTeachers student = studentsTeachersRepository.findById(id).orElse(null);
+
+            if (student == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("No se encontró un estudiante con el ID: " + id);
+            }
+
+            // Elimina el progreso del estudiante asociado
+            ProgressTracker studentProgress = progressTrackerRepository.findByStudentId(id);
+
+            if (studentProgress != null) {
+                progressTrackerRepository.delete(studentProgress);
+            }
+
+            // Elimina el perfil del estudiante
+            studentsTeachersRepository.delete(student);
+
+            return ResponseEntity.status(HttpStatus.OK).body("Estudiante y su progreso eliminados exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el estudiante: " + e.getMessage());
         }
     }
 }
